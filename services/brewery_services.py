@@ -1,0 +1,113 @@
+from database.mongo import db
+from models.Brewery import UpdateBrewery
+
+from fastapi import HTTPException, UploadFile
+from bson import ObjectId
+import uuid
+from pathlib import Path
+import shutil
+import bcrypt
+import os
+
+brewery_db = db["breweries"]
+salt =  bcrypt.gensalt()
+
+def create_brewery(name_brewery, ruc, name_comercial, city, address,
+                   contact_number, opening_hours, description, logo,
+                   email, password):
+
+    existing_brewery = brewery_db.find_one({"name_brewery": name_brewery})
+    if existing_brewery:
+        raise HTTPException(status_code=400, detail="Brewery already exists")
+
+
+
+    hashed_password = bcrypt.hashpw(password.encode('utf-8'), salt).decode('utf-8')
+
+    file_name = str(uuid.uuid4()) + logo.filename
+    path_name = Path('images/images_breweries')
+
+    direction = path_name / file_name
+
+    with direction.open('wb') as buffer:
+        shutil.copyfileobj(logo.file, buffer)
+
+    url = f"http://localhost:8000/{direction}"
+
+
+    brewery_db.insert_one(
+
+        {
+            'name_brewery': name_brewery,
+            'ruc': ruc,
+            'name_comercial': name_comercial,
+            'city': city,
+            'address': address,
+            'contact_number': contact_number,
+            'opening_hours': opening_hours,
+            'description': description,
+            'logo': url,
+            'email': email,
+            'password': hashed_password,
+            'role': 'provider',
+            'status': 'active'
+        }
+    )
+
+    return {"message": "Brewery created successfully"}
+
+
+def get_brewery(id_user:str):
+    existing_brewery = brewery_db.find_one({"_id": ObjectId(id_user)})
+    if not existing_brewery:
+        raise HTTPException(status_code=404, detail="Brewery not found")
+
+    existing_brewery["_id"] = str(existing_brewery["_id"])
+
+
+
+    return {
+        "message": "Brewery found",
+        "brewery": existing_brewery,
+    }
+
+
+
+def update_brewery (id_user: str, update_data: UpdateBrewery):
+    query_filter = {"_id":  ObjectId(id_user)}
+    update_fields = update_data.model_dump(exclude_unset=True)
+    update_query = {"$set": update_fields}
+    result = brewery_db.update_one(query_filter, update_query)
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Brewery not found or no changes were made")
+
+    return {"message": "Brewery updated successfully"}
+
+
+
+
+def update_brewery_logo(id_user: str, logo: UploadFile):
+    file_name= str(uuid.uuid4()) + logo.filename
+    path_name = Path('images/images_breweries')
+    direction = path_name / file_name
+
+    # Crea el directorio si no existe
+    path_name.mkdir(parents=True, exist_ok=True)
+
+    with open(direction, 'wb') as buffer:
+        shutil.copyfileobj(logo.file, buffer)
+
+    url = f"http://localhost:8000/{direction}"
+
+
+    result = brewery_db.update_one(
+        {"_id": ObjectId(id_user)},
+        {"$set": {"logo": url}}
+    )
+
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Brewery not found or no changes were made")
+
+    return {"message": "Brewery logo updated successfully", "logo_url": url}
+
+
