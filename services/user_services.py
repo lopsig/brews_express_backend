@@ -7,6 +7,7 @@ from typing import Optional
 brews_db = db["brews"]
 user_db = db["users"]
 favourite_db = db["favourites"]
+brewery_db = db["breweries"]
 
 
 def get_all_brews ():
@@ -64,17 +65,56 @@ def search_brews_user(search: Optional[str] = None, style: Optional[str] = None,
 
         print(f"Query construida: {query}")
 
+        pipeline = [
+            {"$match": query},
+            {
+                "$addFields": {
+                    "id_user_obj": {"$toObjectId": "$id_user"}
+                }
+            },
+            {
+                "$lookup": {
+                    "from": "breweries",
+                    "localField": "id_user_obj",
+                    "foreignField": "_id",
+                    "as": "brewery_info",
+                }
+            },
+            {"$unwind": {"path": "$brewery_info", "preserveNullAndEmptyArrays": True}},
+
+            {
+                "$project": {
+                    "_id": {"$toString": "$_id"},
+                    "name": "$name",
+                    "description": "$description",
+                    "style": "$style",
+                    "abv": "$abv",
+                    "price": "$price",
+                    "srm": "$srm",
+                    "ibu": "$ibu",
+                    "ml": "$ml",
+                    "image": "$image",
+                    "brewery_name":"$brewery_info.name_brewery",
+
+                }
+            },
+            {"$sort": {"name": 1}}
+        ]
+
+        brews_cursor = brews_db.aggregate(pipeline)
+        brews_list = list(brews_cursor)
+
         # Ejecutar búsqueda
-        brews_cursor = brews_db.find(query).sort("name", 1)
-        brews_list = []
-
-        for brew in brews_cursor:
-            brew["_id"] = str(brew["_id"])
-            if "id_user" in brew:
-                brew["id_user"] = str(brew["id_user"]) if brew["id_user"] else None
-            brews_list.append(brew)
-
-        print(f"Cervezas encontradas: {len(brews_list)}")
+        # brews_cursor = brews_db.find(query).sort("name", 1)
+        # brews_list = []
+        #
+        # for brew in brews_cursor:
+        #     brew["_id"] = str(brew["_id"])
+        #     if "id_user" in brew:
+        #         brew["id_user"] = str(brew["id_user"]) if brew["id_user"] else None
+        #     brews_list.append(brew)
+        #
+        # print(f"Cervezas encontradas: {len(brews_list)}")
 
         return {
             "message": "Brews retrieved successfully",
@@ -230,3 +270,57 @@ def get_my_favourites(id_user: str):
         "message": "Favourites retrieved successfully",
         "favourites": favourites_list
     }
+
+
+def get_brew_by_id(brew_id: str):
+    try:
+        brew_pipeline = [
+            {"$match": {"_id": ObjectId(brew_id)}},
+            {
+              "$addFields": {
+                    "id_user_obj": {"$toObjectId": "$id_user"}
+                }
+            },
+            {
+
+                "$lookup": {
+                    "from": "breweries",
+                    "localField": "id_user_obj",
+                    "foreignField": "_id",
+                    "as": "brewery_info"
+                }
+            },
+            {"$unwind": {"path": "$brewery_info", "preserveNullAndEmptyArrays": True}},
+            {
+                "$project": {
+                    "_id": {"$toString": "$_id"},
+                    "name": "$name",
+                    "description": "$description",
+                    "style": "$style",
+                    "abv": "$abv",
+                    "price": "$price",
+                    "srm": "$srm",
+                    "ibu": "$ibu",
+                    "ml": "$ml",
+                    "image": "$image",
+                    "brewery_name": "$brewery_info.name_brewery"
+                }
+            }
+        ]
+
+        brew_cursor = list(brews_db.aggregate(brew_pipeline))
+
+        if not brew_cursor:
+            raise HTTPException(status_code=404, detail="Brew not found")
+
+        return {
+            "message": "Brew found",
+            "brew": brew_cursor[0]
+        }
+
+    except HTTPException as e:
+        raise e
+    except Exception as e:
+        print(f"Error en get_brew_by_id: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
+

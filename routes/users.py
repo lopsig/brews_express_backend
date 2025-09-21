@@ -5,7 +5,9 @@ from services.user_services import (get_all_brews, get_my_profile,
                                     remove_from_favourites,
                                     get_my_favourites,
                                     search_brews_user,
-                                    get_unique_brew_styles)
+                                    get_unique_brew_styles,
+                                    get_brew_by_id
+                                    )
 
 from services.auth_services import get_current_user_id
 from models.User import UpdateUser
@@ -67,3 +69,7 @@ def get_my_favourites_route(
     id_user: str = Depends(get_current_user_id)
 ):
     return get_my_favourites(id_user)
+
+@router.get("/brew/{brew_id}")
+def get_brew_details_route(brew_id: str):
+    return get_brew_by_id(brew_id)
