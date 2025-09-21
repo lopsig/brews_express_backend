@@ -3,7 +3,7 @@ from pydantic import BaseModel
 class UserRegister(BaseModel):
     first_name: str
     last_name: str
-    phone_number: int
+    phone_number: str
     dni: int
     birth_date: str
     email: str
@@ -16,5 +16,7 @@ class UserLogin(BaseModel):
 class UpdateUser(BaseModel):
     first_name: str
     last_name: str
-    phone_number: int
+    #email: str
+    phone_number: str
     birth_date: str
+    #dni: int

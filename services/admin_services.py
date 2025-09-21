@@ -207,14 +207,10 @@ def delete_brewery(brewery_id: str):
 
         print(f"Cervecería encontrada: {existing_brewery.get('name_brewery', 'N/A')}")
 
-        # Verificar si la cervecería tiene cervezas asociadas
-        associated_brews = brews_db.count_documents({"brewery_id": ObjectId(brewery_id)})
-        if associated_brews > 0:
-            print(f"Cervecería tiene {associated_brews} cervezas asociadas")
-            raise HTTPException(
-                status_code=400,
-                detail=f"Cannot delete brewery. It has {associated_brews} associated brews. Delete brews first."
-            )
+        #Eliminar las cervezas asociadas primero
+        print(f"Eliminando cervezas asociadas...")
+        delete_brews_result = brews_db.delete_many({"id_user": brewery_id})
+        print(f"Se eliminaron {delete_brews_result.deleted_count} cervezas asociadas.")
 
         # Eliminar la cervecería
         print(f"Procediendo a eliminar cervecería...")
@@ -250,12 +246,12 @@ def get_brewery_brews(brewery_id: str):
             raise HTTPException(status_code=404, detail="Brewery not found")
 
         # Obtener cervezas de la cervecería
-        brewery_brews_cursor = brews_db.find({"brewery_id": ObjectId(brewery_id)})
+        brewery_brews_cursor = brews_db.find({"id_user": brewery_id})
         brews_list = []
 
         for brew in brewery_brews_cursor:
             brew["_id"] = str(brew["_id"])
-            brew["brewery_id"] = str(brew["brewery_id"])
+            brew["id_user"] = str(brew["id_user"])
             brews_list.append(brew)
 
         print(f"Cervezas encontradas: {len(brews_list)}")
@@ -274,13 +270,75 @@ def get_brewery_brews(brewery_id: str):
         raise HTTPException(status_code=500, detail="Internal server error")
 
 
+def get_brew_by_id(brew_id: str):
+    try:
+        if not ObjectId.is_valid(brew_id):
+            raise HTTPException(status_code=400, detail="Invalid brew ID format")
+
+        existing_brew = brews_db.find_one({"_id": ObjectId(brew_id)})
+        if not existing_brew:
+            raise HTTPException(status_code=404, detail="Brew not found")
+
+        existing_brew["_id"] = str(existing_brew["_id"])
+
+        return {
+            "message": "Brew found",
+            "brew": existing_brew
+        }
+    except Exception as e:
+        if isinstance(e, HTTPException):
+            raise e
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 
 
 
+def update_brew(brew_id: str, update_data):
+    """Actualiza una cerveza específica por su ID."""
+    try:
+        if not ObjectId.is_valid(brew_id):
+            raise HTTPException(status_code=400, detail="Invalid brew ID format")
+
+        existing_brew = brews_db.find_one({"_id": ObjectId(brew_id)})
+        if not existing_brew:
+            raise HTTPException(status_code=404, detail="Brew not found")
+
+        update_fields = update_data.model_dump(exclude_unset=True)
+        filtered_fields = {k: v for k, v in update_fields.items() if v is not None}
+
+        if not filtered_fields:
+            return {"message": "No valid fields to update"}
+
+        update_query = {"$set": filtered_fields}
+        result = brews_db.update_one({"_id": ObjectId(brew_id)}, update_query)
+
+        if result.modified_count == 0:
+            return {"message": "No changes were made - data is identical"}
+
+        updated_brew = brews_db.find_one({"_id": ObjectId(brew_id)})
+        updated_brew["_id"] = str(updated_brew["_id"])
+
+        return {"message": "Brew updated successfully", "brew": updated_brew}
+
+    except Exception as e:
+        if isinstance(e, HTTPException):
+            raise e
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 
+def delete_brew(brew_id: str):
+    """Elimina una cerveza específica por su ID."""
+    try:
+        if not ObjectId.is_valid(brew_id):
+            raise HTTPException(status_code=400, detail="Invalid brew ID format")
 
+        result = brews_db.delete_one({"_id": ObjectId(brew_id)})
+        if result.deleted_count == 0:
+            raise HTTPException(status_code=404, detail="Brew not found")
 
+        return {"message": "Brew deleted successfully"}
 
-
+    except Exception as e:
+        if isinstance(e, HTTPException):
+            raise e
+        raise HTTPException(status_code=500, detail="Internal server error")

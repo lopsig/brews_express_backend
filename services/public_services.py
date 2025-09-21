@@ -1,4 +1,5 @@
 from database.mongo import db
+from fastapi import HTTPException
 
 brews_db = db["brews"]
 

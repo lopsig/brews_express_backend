@@ -3,10 +3,14 @@ from services.auth_services import get_current_user_id
 from services.admin_services import (get_all_users,
                                      get_all_breweries,
                                      update_user, get_user_by_id,
-                                     delete_user, get_brewery_by_id, update_brewery, delete_brewery, get_brewery_brews
+                                     delete_user, get_brewery_by_id,
+                                     update_brewery, delete_brewery,
+                                     get_brewery_brews,
+                                     update_brew, delete_brew, get_brew_by_id,
                                      )
 from models.User import UpdateUser
 from models.Brewery import UpdateBrewery
+from models.Brew import UpdateBrew
 
 router = APIRouter(prefix="/be/admin", tags=["be/admin"])
 
@@ -54,3 +58,15 @@ def delete_brewery_route(brewery_id: str):
 @router.get("/brewery_brews/{brewery_id}")
 def get_brewery_brews_route(brewery_id: str):
     return get_brewery_brews(brewery_id)
+
+@router.get("/brew/{brew_id}")
+def get_brew_by_id_route(brew_id: str):
+    return get_brew_by_id(brew_id)
+
+@router.put("/update_brew/{brew_id}")
+def update_brew_route(brew_id: str, update_data: UpdateBrew):
+    return update_brew(brew_id, update_data)
+
+@router.delete("/delete_brew/{brew_id}")
+def delete_brew_route(brew_id: str):
+    return delete_brew(brew_id)

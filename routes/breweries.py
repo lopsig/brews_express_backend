@@ -14,7 +14,7 @@ def create_brewery_route(
         name_comercial: str = Form(...),
         city: str = Form(...),
         address: str = Form(...),
-        contact_number: int = Form(...),
+        contact_number: str = Form(...),
         opening_hours: str = Form(...),
         description: str = Form(...),
         logo: UploadFile = File(...),
