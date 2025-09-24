@@ -4,6 +4,8 @@ from fastapi import HTTPException, UploadFile
 from bson import ObjectId
 from pathlib import Path
 from dotenv import load_dotenv
+from azure_blob_functions.blob import upload_blob
+
 
 import uuid
 import shutil
@@ -15,7 +17,7 @@ load_dotenv()
 brewery_db = db["breweries"]
 salt =  bcrypt.gensalt()
 
-def create_brewery(name_brewery, ruc, name_comercial, city, address,
+async def create_brewery(name_brewery, ruc, name_comercial, city, address,
                    contact_number, opening_hours, description, logo,
                    email, password):
 
@@ -27,14 +29,15 @@ def create_brewery(name_brewery, ruc, name_comercial, city, address,
 
     hashed_password = bcrypt.hashpw(password.encode('utf-8'), salt).decode('utf-8')
 
-    #file_name = str(uuid.uuid4()) + logo.filename
-    file_name = logo.filename
+    file_name = str(uuid.uuid4()) + logo.filename
     path_name = Path(os.getenv('IMAGES_PATH_BREWERIES', 'images/images_breweries'))
 
     direction = path_name / file_name
 
     with direction.open('wb') as buffer:
         shutil.copyfileobj(logo.file, buffer)
+    data = await logo.file.read()
+    upload_blob(file_name, data)
 
     url = f"{os.getenv('IMAGES_URL', 'http://localhost:8000')}/{direction}"
 
@@ -90,7 +93,7 @@ def update_brewery (id_user: str, update_data: UpdateBrewery):
 
 
 
-def update_brewery_logo(id_user: str, logo: UploadFile):
+async def update_brewery_logo(id_user: str, logo: UploadFile):
     file_name= str(uuid.uuid4()) + logo.filename
     path_name = Path(os.getenv('IMAGES_PATH_BREWERIES', 'images/images_breweries'))
 
@@ -101,6 +104,9 @@ def update_brewery_logo(id_user: str, logo: UploadFile):
 
     with open(direction, 'wb') as buffer:
         shutil.copyfileobj(logo.file, buffer)
+
+    data = await logo.read()
+    upload_blob(file_name, data)
 
     url = f"{os.getenv('IMAGES_URL', 'http://localhost:8000')}/{direction}"
 
