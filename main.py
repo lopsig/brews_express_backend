@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from starlette.middleware.cors import CORSMiddleware
 from starlette.staticfiles import StaticFiles
 
-from routes import auth, breweries, brews, public, users, admin
+from routes import auth, breweries, brews, public, users, admin, blobs
 
 app = FastAPI()
 app.mount('/images', StaticFiles(directory='images'), name='images')
@@ -28,3 +28,4 @@ app.include_router(brews.router)
 app.include_router(public.router)
 app.include_router(users.router)
 app.include_router(admin.router)
+app.include_router(blobs.blobs_routes, prefix="/storage/blob")

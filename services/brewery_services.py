@@ -1,13 +1,16 @@
 from database.mongo import db
 from models.Brewery import UpdateBrewery
-
 from fastapi import HTTPException, UploadFile
 from bson import ObjectId
-import uuid
 from pathlib import Path
+from dotenv import load_dotenv
+
+import uuid
 import shutil
 import bcrypt
 import os
+
+load_dotenv()
 
 brewery_db = db["breweries"]
 salt =  bcrypt.gensalt()
@@ -25,14 +28,14 @@ def create_brewery(name_brewery, ruc, name_comercial, city, address,
     hashed_password = bcrypt.hashpw(password.encode('utf-8'), salt).decode('utf-8')
 
     file_name = str(uuid.uuid4()) + logo.filename
-    path_name = Path('images/images_breweries')
+    path_name = Path(os.getenv('IMAGES_PATH_BREWERIES', 'images/images_breweries'))
 
     direction = path_name / file_name
 
     with direction.open('wb') as buffer:
         shutil.copyfileobj(logo.file, buffer)
 
-    url = f"http://localhost:8000/{direction}"
+    url = f"{os.getenv('IMAGES_URL', 'http://localhost:8000')}/{direction}"
 
 
     brewery_db.insert_one(
@@ -88,7 +91,8 @@ def update_brewery (id_user: str, update_data: UpdateBrewery):
 
 def update_brewery_logo(id_user: str, logo: UploadFile):
     file_name= str(uuid.uuid4()) + logo.filename
-    path_name = Path('images/images_breweries')
+    path_name = Path(os.getenv('IMAGES_PATH_BREWERIES', 'images/images_breweries'))
+
     direction = path_name / file_name
 
     # Crea el directorio si no existe
@@ -97,7 +101,7 @@ def update_brewery_logo(id_user: str, logo: UploadFile):
     with open(direction, 'wb') as buffer:
         shutil.copyfileobj(logo.file, buffer)
 
-    url = f"http://localhost:8000/{direction}"
+    url = f"{os.getenv('IMAGES_URL', 'http://localhost:8000')}/{direction}"
 
 
     result = brewery_db.update_one(

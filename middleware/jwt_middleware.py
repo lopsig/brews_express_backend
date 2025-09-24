@@ -1,7 +1,10 @@
 from fastapi import Request, HTTPException
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from dotenv import load_dotenv
+
 import jwt
 import os
+load_dotenv()
 
 
 secret_key = os.getenv("JWT_SECRET_KEY")

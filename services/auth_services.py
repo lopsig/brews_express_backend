@@ -2,10 +2,12 @@ import datetime
 
 from database.mongo import db
 from models.User import UserRegister, UserLogin
+from dotenv import load_dotenv
 import os
 import bcrypt
 import jwt
 from fastapi import HTTPException, Request
+load_dotenv()
 
 user_db = db["users"]
 brewery_db = db["breweries"]

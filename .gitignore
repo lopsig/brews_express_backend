@@ -1,0 +1,32 @@
+# Enviroment variables
+*.env
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.pyre/
+.pytype/
+.pyright/
+.mypy_cache/
+.pytest_cache/
+.ipynb_checkpoints
+
+# IDEs and editors
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+*.swp
+*~
+.DS_Store 
+
+# venv
+venv/
+env/
+.venv/
+.env/
+ENV/
+env.bak/
+venv.bak/
