@@ -27,7 +27,8 @@ def create_brewery(name_brewery, ruc, name_comercial, city, address,
 
     hashed_password = bcrypt.hashpw(password.encode('utf-8'), salt).decode('utf-8')
 
-    file_name = str(uuid.uuid4()) + logo.filename
+    #file_name = str(uuid.uuid4()) + logo.filename
+    file_name = logo.filename
     path_name = Path(os.getenv('IMAGES_PATH_BREWERIES', 'images/images_breweries'))
 
     direction = path_name / file_name
