@@ -34,8 +34,6 @@ async def create_brewery(name_brewery, ruc, name_comercial, city, address,
 
     direction = path_name / file_name
 
-    with direction.open('wb') as buffer:
-        shutil.copyfileobj(logo.file, buffer)
     data = await logo.read()
     upload_blob(file_name, data)
 
@@ -101,9 +99,6 @@ async def update_brewery_logo(id_user: str, logo: UploadFile):
 
     # Crea el directorio si no existe
     path_name.mkdir(parents=True, exist_ok=True)
-
-    with open(direction, 'wb') as buffer:
-        shutil.copyfileobj(logo.file, buffer)
 
     data = await logo.read()
     upload_blob(file_name, data)
