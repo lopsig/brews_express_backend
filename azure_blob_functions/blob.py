@@ -9,9 +9,12 @@ import os
 load_dotenv()
 
 blob_service_client = BlobServiceClient.from_connection_string(os.getenv("AZURE_STORAGE_CONNECTION_STRING"))
-container_name = os.getenv("AZURE_CONTAINER_NAME")
+container_images = os.getenv("AZURE_CONTAINER_IMAGES")
+container_brews = os.getenv("AZURE_CONTAINER_BREWS")
+container_breweries = os.getenv("AZURE_CONTAINER_BREWERIES")
 
-def upload_blob(filename: str, data: BinaryIO):
+
+def uploadBlobToAzure(filename: str, data: BinaryIO, container_name:str):
   try:
     blob_client = blob_service_client.get_blob_client(container=container_name, blob=filename)
 
@@ -27,13 +30,19 @@ def upload_blob(filename: str, data: BinaryIO):
     return response_json(message= e.message, status=500)
 
 
-async def upload_blob_images(logo):
+async def upload_blob_images(logo, typeLogo:str):
+    container="images"
+    if typeLogo=="brews":
+      container = container_brews
+    else:
+      container = container_breweries
+
     file_name= str(uuid.uuid4()) + logo.filename
     path_name = Path(os.getenv('IMAGES_PATH_BREWERIES', 'images/images_breweries'))
 
     direction = path_name / file_name
 
     data = await logo.read()
-    upload_blob(file_name, data)
+    uploadBlobToAzure(file_name, data, container)
 
     return f"{os.getenv('IMAGES_URL', 'http://localhost:8000')}/{direction}"

@@ -21,7 +21,7 @@ async def create_brew(name, style, abv, srm, ibu, ml,price, description, image, 
     if existing_brew:
         raise HTTPException(status_code=400, detail="Brew already exists")
 
-    url = await upload_blob_images(image)
+    url = await upload_blob_images(image, "brews")
 
     brews_db.insert_one({
         "name": name,
@@ -96,7 +96,7 @@ async def update_brew_logo(id_user: str, brew_id: str, image: UploadFile):
     if not brew:
         raise HTTPException(status_code=404, detail="Brew not found")
 
-    url = await upload_blob_images(image)
+    url = await upload_blob_images(image, "brews")
 
     result = brews_db.update_one(
         {"_id": ObjectId(brew_id)},

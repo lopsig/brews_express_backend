@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Form, File, UploadFile
-from azure_blob_functions.blob import upload_blob
+from azure_blob_functions.blob import uploadBlobToAzure
 
 blobs_routes = APIRouter()
 
@@ -7,4 +7,4 @@ blobs_routes = APIRouter()
 async def upload(file: UploadFile = File(...)):
   data = await file.read()
   filename = file.filename
-  return upload_blob(filename, data)
+  return uploadBlobToAzure(filename, data, "images")

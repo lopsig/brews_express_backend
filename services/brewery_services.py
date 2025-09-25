@@ -27,7 +27,7 @@ async def create_brewery(name_brewery, ruc, name_comercial, city, address,
 
     hashed_password = bcrypt.hashpw(password.encode('utf-8'), salt).decode('utf-8')
 
-    url = await upload_blob_images(logo)
+    url = await upload_blob_images(logo, "breweries")
 
     brewery_db.insert_one(
 
@@ -82,7 +82,7 @@ def update_brewery (id_user: str, update_data: UpdateBrewery):
 
 async def update_brewery_logo(id_user: str, logo: UploadFile):
 
-    url = await upload_blob_images(logo)
+    url = await upload_blob_images(logo, "breweries")
 
     result = brewery_db.update_one(
         {"_id": ObjectId(id_user)},
