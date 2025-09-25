@@ -34,4 +34,4 @@ async def upload_blob_images(logo):
     data = await logo.read()
     upload_blob(file_name, data)
 
-    return url = f"{os.getenv('IMAGES_URL', 'http://localhost:8000')}/{direction}"
+    return f"{os.getenv('IMAGES_URL', 'http://localhost:8000')}/{direction}"
