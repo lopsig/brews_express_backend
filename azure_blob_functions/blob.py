@@ -38,9 +38,8 @@ async def upload_blob_images(logo, typeLogo:str):
       container = container_breweries
 
     file_name= str(uuid.uuid4()) + logo.filename
-    path_name = Path(os.getenv('IMAGES_PATH_BREWERIES', 'images/images_breweries'))
 
-    direction = path_name / file_name
+    direction = container / file_name
 
     data = await logo.read()
     uploadBlobToAzure(file_name, data, container)
