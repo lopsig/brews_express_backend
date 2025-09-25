@@ -9,7 +9,7 @@ from typing import Optional
 router = APIRouter(prefix="/brews", tags=["brews"])
 
 @router.post("/create_brew")
-def create_brew_route(
+async def create_brew_route(
         name: str= Form(...),
         style: str = Form(...),
         abv: float = Form(...),
@@ -22,7 +22,7 @@ def create_brew_route(
         id_user: str = Form(...),
         #images: list[UploadFile] = Form(...),
 ):
-    return create_brew(name, style, abv, srm, ibu, ml, price, description, image, id_user)#, images)
+    return await create_brew(name, style, abv, srm, ibu, ml, price, description, image, id_user)#, images)
 
 @router.get("/my_brews")
 def get_my_brews_route(
@@ -62,13 +62,13 @@ def update_brew_route(
     return update_brew(id_user, brew_id, update_data)
 
 @router.put("/update_brew_image/{brew_id}")
-def update_brew_logo_route(
+async def update_brew_logo_route(
         brew_id: str,
         image: UploadFile = File(...),
         id_user: str = Depends(get_current_user_id),
 
 ):
-    return update_brew_logo(id_user, brew_id, image)
+    return await update_brew_logo(id_user, brew_id, image)
 
 
 @router.delete("/delete_brew/{brew_id}")

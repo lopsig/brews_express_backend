@@ -4,7 +4,7 @@ from fastapi import HTTPException, UploadFile
 from bson import ObjectId
 from pathlib import Path
 from dotenv import load_dotenv
-from azure_blob_functions.blob import upload_blob
+from azure_blob_functions.blob import upload_blob_images
 
 
 import uuid
@@ -25,20 +25,9 @@ async def create_brewery(name_brewery, ruc, name_comercial, city, address,
     if existing_brewery:
         raise HTTPException(status_code=400, detail="Brewery already exists")
 
-
-
     hashed_password = bcrypt.hashpw(password.encode('utf-8'), salt).decode('utf-8')
 
-    file_name = str(uuid.uuid4()) + logo.filename
-    path_name = Path(os.getenv('IMAGES_PATH_BREWERIES', 'images/images_breweries'))
-
-    direction = path_name / file_name
-
-    data = await logo.read()
-    upload_blob(file_name, data)
-
-    url = f"{os.getenv('IMAGES_URL', 'http://localhost:8000')}/{direction}"
-
+    url = await upload_blob_images(logo)
 
     brewery_db.insert_one(
 
@@ -92,19 +81,8 @@ def update_brewery (id_user: str, update_data: UpdateBrewery):
 
 
 async def update_brewery_logo(id_user: str, logo: UploadFile):
-    file_name= str(uuid.uuid4()) + logo.filename
-    path_name = Path(os.getenv('IMAGES_PATH_BREWERIES', 'images/images_breweries'))
 
-    direction = path_name / file_name
-
-    # Crea el directorio si no existe
-    path_name.mkdir(parents=True, exist_ok=True)
-
-    data = await logo.read()
-    upload_blob(file_name, data)
-
-    url = f"{os.getenv('IMAGES_URL', 'http://localhost:8000')}/{direction}"
-
+    url = await upload_blob_images(logo)
 
     result = brewery_db.update_one(
         {"_id": ObjectId(id_user)},

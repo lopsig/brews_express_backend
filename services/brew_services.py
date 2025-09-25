@@ -6,13 +6,13 @@ from fastapi import HTTPException, UploadFile
 from models.Brew import UpdateBrew
 from bson import ObjectId
 import os
-
+from azure_blob_functions.blob import upload_blob_images
 
 brews_db = db['brews']
 favourite_db = db["favourites"]
 # brewery_db = db["breweries"]
 
-def create_brew(name, style, abv, srm, ibu, ml,price, description, image, id_user): #, images):
+async def create_brew(name, style, abv, srm, ibu, ml,price, description, image, id_user): #, images):
 
     existing_brew = brews_db.find_one({
         "name": name,
@@ -21,16 +21,7 @@ def create_brew(name, style, abv, srm, ibu, ml,price, description, image, id_use
     if existing_brew:
         raise HTTPException(status_code=400, detail="Brew already exists")
 
-    file_name= str(uuid.uuid4()) + image.filename
-    path_name = Path('images/images_brews')
-
-    direction = path_name / file_name
-
-    with direction.open('wb') as buffer:
-        shutil.copyfileobj(image.file, buffer)
-
-
-    url = f"http://localhost:8000/{direction}"
+    url = await upload_blob_images(logo)
 
     brews_db.insert_one({
         "name": name,
@@ -100,19 +91,12 @@ def update_brew(id_user: str, brew_id: str, update_data: UpdateBrew):
     return {"message": "Brew updated successfully"}
 
 
-def update_brew_logo(id_user: str, brew_id: str, image: UploadFile):
+async def update_brew_logo(id_user: str, brew_id: str, image: UploadFile):
     brew = brews_db.find_one({"_id": ObjectId(brew_id), "id_user": id_user})
     if not brew:
         raise HTTPException(status_code=404, detail="Brew not found")
 
-    file_name = str(uuid.uuid4()) + image.filename
-    path_name = Path('images/images_brews')
-    direction = path_name / file_name
-
-    with open(direction, 'wb') as buffer:
-        shutil.copyfileobj(image.file, buffer)
-
-    url = f"http://localhost:8000/{direction}"
+    url = await upload_blob_images(logo)
 
     result = brews_db.update_one(
         {"_id": ObjectId(brew_id)},

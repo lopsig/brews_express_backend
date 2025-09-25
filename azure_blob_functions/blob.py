@@ -23,3 +23,15 @@ def upload_blob(filename: str, data: BinaryIO):
 
   except Exception as e:
     return response_json(message= e.message, status=500)
+
+
+async def upload_blob_images(logo):
+    file_name= str(uuid.uuid4()) + logo.filename
+    path_name = Path(os.getenv('IMAGES_PATH_BREWERIES', 'images/images_breweries'))
+
+    direction = path_name / file_name
+
+    data = await logo.read()
+    upload_blob(file_name, data)
+
+    return url = f"{os.getenv('IMAGES_URL', 'http://localhost:8000')}/{direction}"
