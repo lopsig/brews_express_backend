@@ -8,7 +8,7 @@ from services.auth_services import get_current_user_id
 router = APIRouter(prefix="/breweries", tags=["breweries"])
 
 @router.post("/register_brewery")
-def create_brewery_route(
+async def create_brewery_route(
         name_brewery: str = Form(...),
         ruc: int = Form(...),
         name_comercial: str = Form(...),
@@ -21,7 +21,7 @@ def create_brewery_route(
         email: str = Form(...),
         password: str = Form(...),
         ):
-    return create_brewery(name_brewery, ruc, name_comercial, city, address, contact_number, opening_hours, description, logo, email, password)
+    return await create_brewery(name_brewery, ruc, name_comercial, city, address, contact_number, opening_hours, description, logo, email, password)
 
 
 @router.get("/brewery")
@@ -40,9 +40,9 @@ def update_brewery_route(
 
 
 @router.put("/update_brewery_logo")
-def update_brewery_logo_route(
+async def update_brewery_logo_route(
     logo: UploadFile = File(...),
     id_user: str = Depends(get_current_user_id)
 ):
-    return update_brewery_logo(id_user, logo)
+    return await update_brewery_logo(id_user, logo)
 
