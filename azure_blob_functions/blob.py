@@ -39,7 +39,7 @@ async def upload_blob_images(logo, typeLogo:str):
 
     file_name= str(uuid.uuid4()) + logo.filename
 
-    direction = container / file_name
+    direction = f"{container}/{file_name}"
 
     data = await logo.read()
     uploadBlobToAzure(file_name, data, container)
