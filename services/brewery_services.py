@@ -36,7 +36,7 @@ async def create_brewery(name_brewery, ruc, name_comercial, city, address,
 
     with direction.open('wb') as buffer:
         shutil.copyfileobj(logo.file, buffer)
-    data = await logo.file.read()
+    data = await logo.read()
     upload_blob(file_name, data)
 
     url = f"{os.getenv('IMAGES_URL', 'http://localhost:8000')}/{direction}"
